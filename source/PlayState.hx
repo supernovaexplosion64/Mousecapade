@@ -96,8 +96,12 @@ class PlayState extends FlxState
 		var randomX:Int = FlxG.random.int(0, 1200);
 		var randomY:Int = FlxG.random.int(0, 600);
 		//returnDaCheese();
-		var randomCheeseNum:Int = FlxG.random.int(1, 5);
-		if (randomCheeseNum == 5)
+		var randomCheeseNum:Int = FlxG.random.int(1, 10);
+		if (randomCheeseNum == 1)
+		{
+			daCheese = 'red';
+		}
+		else if (randomCheeseNum >= 2 && randomCheeseNum <= 3)
 		{
 			daCheese = 'blue';
 		}
@@ -108,6 +112,8 @@ class PlayState extends FlxState
 
 		switch (daCheese)
 		{
+			case 'red':
+				cheese.loadGraphic("assets/images/items/redcheese.png");
 			case 'blue':
 				cheese.loadGraphic("assets/images/items/bluecheese.png");
 				//cheese.x += randomMovement;
