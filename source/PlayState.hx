@@ -1,6 +1,8 @@
 package;
 
 import flixel.FlxG;
+import flixel.FlxG;
+import flixel.FlxSprite;
 import flixel.FlxSprite;
 import flixel.FlxState;
 import flixel.sound.FlxSound;
@@ -17,8 +19,11 @@ class PlayState extends FlxState
 	public var score:Int = 0;
 	public var scoreMultiplier:Float = 1;
 
+	public var daCheese:String;
+
 	public var scoreText:FlxText;
-	public var randomCheeseNum:Int = FlxG.random.int(1, 5);
+	public var randomMovementX:Int = FlxG.random.int(1, 10);
+	public var randomMovementY:Int = FlxG.random.int(1, 12);
 
 	override public function create()
 	{
@@ -49,6 +54,8 @@ class PlayState extends FlxState
 
 	override public function update(elapsed:Float)
 	{
+		keepPlayerInBox(player);
+		moveCheese();
 		if (FlxG.pixelPerfectOverlap(player, cheese))
 		{
 			feedMe();
@@ -72,25 +79,41 @@ class PlayState extends FlxState
 		}
 		super.update(elapsed);
 	}
-	public function returnDaCheese():String
+	/*public function returnDaCheese()
 	{
 		if (randomCheeseNum == 5)
 		{
-			return 'bluecheese';
+			daCheese = 'blue';
 		}
 		else
 		{
-			return 'cheese';
+			daCheese = 'normal';
 		}
-	}
+		return daCheese;
+	}*/
 	public function spawnCheese()
 	{
 		var randomX:Int = FlxG.random.int(0, 1200);
 		var randomY:Int = FlxG.random.int(0, 600);
-		returnDaCheese();
-		if (returnDaCheese() == 'bluecheese')
+		//returnDaCheese();
+		var randomCheeseNum:Int = FlxG.random.int(1, 5);
+		if (randomCheeseNum == 5)
 		{
-			cheese.loadGraphic("assets/images/items/bluecheese.png");
+			daCheese = 'blue';
+		}
+		else
+		{
+			daCheese = 'normal';
+		}
+
+		switch (daCheese)
+		{
+			case 'blue':
+				cheese.loadGraphic("assets/images/items/bluecheese.png");
+				//cheese.x += randomMovement;
+				//cheese.y += randomMovement;
+			default:
+				cheese.loadGraphic("assets/images/items/cheese.png");
 		}
 		cheese.x = randomX;
 		cheese.y = randomY;
@@ -105,9 +128,46 @@ class PlayState extends FlxState
 		showPopUp();
 	}
 
+	/*public function randomMovementSucks()
+	{
+		var randomMovement:Int = FlxG.random.int(1, 10);
+		if (FlxG.random.bool(5))
+		{
+			randomMovement *= -1;
+		}
+		cheese.x += randomMovement;
+		cheese.y += randomMovement;
+		trace(randomMovement);
+	}*/
+
+	public function moveCheese()
+	{
+		if (daCheese == 'blue')
+		{
+			if (FlxG.random.bool(4))
+			{
+				randomMovementX *= -1;
+			}
+			if (FlxG.random.bool(5))
+			{
+				randomMovementY *= -1;
+			}
+			cheese.x += randomMovementX;
+			cheese.y += randomMovementY;
+			cheese.updateHitbox();
+		}
+		keepPlayerInBox(cheese);
+	}
+
 	public function addScore()
 	{
-		scoreMultiplier = 1;
+		switch (daCheese)
+		{
+			case 'blue':
+				scoreMultiplier = 5;
+			default:
+				scoreMultiplier = 1;
+		}
 		score += Std.int(1 * scoreMultiplier);
 		scoreText.text = "SCORE: " + Std.string(score);
 	}
@@ -121,5 +181,18 @@ class PlayState extends FlxState
 		FlxTween.tween(popUp, {alpha: 0}, 0.6);
 		mickeySound = FlxG.sound.load("assets/sounds/mickey-mouse.ogg");
 		mickeySound.play();
+	}
+
+	public function keepPlayerInBox(obj:FlxSprite)
+	{
+		if (obj.x < 0)
+			obj.x = 0;
+		if (obj.x > FlxG.width - obj.width)
+			obj.x = FlxG.width - obj.width;
+		if (obj.y < 0)
+			obj.y = 0;
+		if (obj.y > FlxG.height - obj.height)
+			obj.y = FlxG.height - obj.height;
+		obj.updateHitbox();
 	}
 }
