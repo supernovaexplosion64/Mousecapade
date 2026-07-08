@@ -18,7 +18,7 @@ class PlayState extends FlxState
 	public var scoreMultiplier:Float = 1;
 
 	public var scoreText:FlxText;
-	public var randomCheeseNum:Int = FlxG.random.int(1, 100);
+	public var randomCheeseNum:Int = FlxG.random.int(1, 5);
 
 	override public function create()
 	{
@@ -72,10 +72,26 @@ class PlayState extends FlxState
 		}
 		super.update(elapsed);
 	}
+	public function returnDaCheese():String
+	{
+		if (randomCheeseNum == 5)
+		{
+			return 'bluecheese';
+		}
+		else
+		{
+			return 'cheese';
+		}
+	}
 	public function spawnCheese()
 	{
 		var randomX:Int = FlxG.random.int(0, 1200);
 		var randomY:Int = FlxG.random.int(0, 600);
+		returnDaCheese();
+		if (returnDaCheese() == 'bluecheese')
+		{
+			cheese.loadGraphic("assets/images/items/bluecheese.png");
+		}
 		cheese.x = randomX;
 		cheese.y = randomY;
 		add(cheese);
