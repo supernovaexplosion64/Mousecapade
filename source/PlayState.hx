@@ -144,6 +144,19 @@ class PlayState extends FlxState
 	{
 		if (daCheese == 'blue')
 		{
+			if (FlxG.random.bool(2))
+			{
+				randomMovementX *= -1;
+			}
+			if (FlxG.random.bool(3))
+			{
+				randomMovementY *= -1;
+			}
+			cheese.x += randomMovementX;
+			cheese.y += randomMovementY;
+		}
+		else if (daCheese == 'red')
+		{
 			if (FlxG.random.bool(4))
 			{
 				randomMovementX *= -1;
@@ -152,10 +165,10 @@ class PlayState extends FlxState
 			{
 				randomMovementY *= -1;
 			}
-			cheese.x += randomMovementX;
-			cheese.y += randomMovementY;
-			cheese.updateHitbox();
+			cheese.x += randomMovementX * 2;
+			cheese.y += randomMovementY * 2;
 		}
+		cheese.updateHitbox();
 		keepPlayerInBox(cheese);
 	}
 
@@ -163,6 +176,8 @@ class PlayState extends FlxState
 	{
 		switch (daCheese)
 		{
+			case 'red':
+				scoreMultiplier = 10;
 			case 'blue':
 				scoreMultiplier = 5;
 			default:
@@ -174,8 +189,21 @@ class PlayState extends FlxState
 
 	public function showPopUp()
 	{
+		var randomPopUpNumber:Int = FlxG.random.int(1, 4);
+		var rPuS:String = '';
 		popUp = new FlxSprite();
-		popUp.loadGraphic("assets/images/popups/revenge.png");
+		switch (randomPopUpNumber)
+		{
+			case 1:
+				rPuS = 'revenge';
+			case 2:
+				rPuS = 'quiddy';
+			case 3:
+				rPuS = 'feedme';
+			case 4:
+				rPuS = 'donald';
+		}
+		popUp.loadGraphic("assets/images/popups/" + rPuS + ".png");
 		popUp.screenCenter();
 		add(popUp);
 		FlxTween.tween(popUp, {alpha: 0}, 0.6);
