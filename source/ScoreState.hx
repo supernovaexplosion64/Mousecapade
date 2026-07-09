@@ -22,6 +22,14 @@ class ScoreState extends FlxState
         scorePreText.x = 12;
         scorePreText.y = 12;
         add(scorePreText);
+		if (FlxG.sound.music == null) // don't restart the music if it's already playing BLUD
+		{
+			#if desktop
+			FlxG.sound.playMusic("assets/music/welcome-old.ogg", 1, true);
+			#else
+			FlxG.sound.playMusic("assets/music/welcome-old.mp3", 1, true);
+			#end
+		}
     }
 
     override public function update(elapsed:Float):Void

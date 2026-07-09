@@ -63,7 +63,11 @@ class InstructionGuideState extends FlxState
 
         if (FlxG.sound.music == null) // don't restart the music if it's already playing BLUD
 		{
+			#if desktop
 			FlxG.sound.playMusic("assets/music/mainmenu.ogg", 1, true);
+			#else
+			FlxG.sound.playMusic("assets/music/mainmenu.mp3", 1, true);
+			#end
 		}
     }
 

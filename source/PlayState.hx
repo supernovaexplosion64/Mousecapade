@@ -1,6 +1,8 @@
 package;
 
+#if desktop
 import Sys;
+#end
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.FlxState;
@@ -64,7 +66,11 @@ class PlayState extends FlxState
 		player.y = FlxG.height - 256;
 		add(player);
 
+		#if desktop
 		FlxG.sound.playMusic("assets/music/welcome-old.ogg", 1, true);
+		#else
+		FlxG.sound.playMusic("assets/music/welcome-old.mp3", 1, true);
+		#end
 
 		cheese = new FlxSprite();
 		cheese.loadGraphic("assets/images/items/cheese.png");
@@ -84,9 +90,13 @@ class PlayState extends FlxState
 
 		wega = new FlxSprite();
 		wega.loadGraphic("assets/images/enemies/wega.png");
+		wega.x = wega.width * -1;
+		wega.y = wega.height * -1;
 
 		pickUp = new FlxSprite();
 		pickUp.loadGraphic("assets/images/enemies/fnati.png");
+		pickUp.x = pickUp.width * -1;
+		pickUp.y = pickUp.height - 1;
 
 		spawnCheese();
 	}
@@ -95,6 +105,8 @@ class PlayState extends FlxState
 	{
 		time -= 1 * FlxG.elapsed;
 		decreasingMultiplier -= 8 * FlxG.elapsed;
+		if (decreasingMultiplier < 2)
+			decreasingMultiplier = 2;
 		timeText.text = "TIME: " + Std.string(Std.int(time));
 		timeText.updateHitbox();
 
@@ -206,12 +218,17 @@ class PlayState extends FlxState
 			wega.x = randomX;
 			wega.y = randomY;
 			add(wega);
+			wega.updateHitbox();
 			// FlxTween.tween(wega, {alpha: 1}, 0.2);
 			new FlxTimer().start(6, function(tmr:FlxTimer)
 			{
+				wega.x = wega.x *= -1;
+				wega.y = wega.y *= -1;
 				remove(wega);
+				wega.updateHitbox();
 			});
 		}
+		wega.updateHitbox();
 	}
 
 	public function touchWega()
@@ -234,12 +251,14 @@ class PlayState extends FlxState
 			pickUp.x = randomX;
 			pickUp.y = randomY;
 			add(pickUp);
+			pickUp.updateHitbox();
 			// FlxTween.tween(pickUp, {alpha: 1}, 0.2);
 			new FlxTimer().start(6, function(tmr:FlxTimer)
 			{
 				remove(pickUp);
 			});
 		}
+		pickUp.updateHitbox();
 	}
 
 	public function feedMe()
@@ -306,7 +325,7 @@ class PlayState extends FlxState
 			default:
 				scoreMultiplier = 1;
 		}
-		score += Std.int(1 * scoreMultiplier * decreasingMultiplier);
+		score += Std.int((100 * scoreMultiplier) + decreasingMultiplier);
 		updateText();
 	}
 
@@ -358,7 +377,11 @@ class PlayState extends FlxState
 		popUp.screenCenter();
 		add(popUp);
 		FlxTween.tween(popUp, {alpha: 0}, 0.6);
+		#if desktop
 		mickeySound = FlxG.sound.load("assets/sounds/mickey-mouse.ogg");
+		#else
+		mickeySound = FlxG.sound.load("assets/sounds/mickey-mouse.mp3");
+		#end
 		mickeySound.play();
 		new FlxTimer().start(time, function(tmr:FlxTimer)
 		{
@@ -373,7 +396,11 @@ class PlayState extends FlxState
 		popUp.screenCenter();
 		add(popUp);
 		FlxTween.tween(popUp, {alpha: 0}, 0.6);
+		#if desktop
 		mickeySound = FlxG.sound.load("assets/sounds/scream.ogg");
+		#else
+		mickeySound = FlxG.sound.load("assets/sounds/scream.mp3");
+		#end
 		mickeySound.play();
 		FlxG.camera.shake();
 		new FlxTimer().start(time, function(tmr:FlxTimer)
@@ -384,10 +411,10 @@ class PlayState extends FlxState
 
 	public function loadUpVideo()
 	{
-		/*pickUp.x *= -1;
-			pickUp.y *= -1;
-			remove(pickUp);
-			score -= 1000; */
+		pickUp.x = pickUp.x *= -1;
+		pickUp.y = pickUp.y *= -1;
+		remove(pickUp);
+		pickUp.updateHitbox();
 		#if (desktop || android)
 		var video:FlxVideo = new FlxVideo();
 		if (!videoPlaying)
@@ -398,6 +425,7 @@ class PlayState extends FlxState
 		}
 		new FlxTimer().start(5, function(tmr:FlxTimer)
 		{
+			#if desktop
 			if (FlxG.random.bool(10))
 			{
 				Sys.exit(0);
@@ -408,10 +436,23 @@ class PlayState extends FlxState
 				FlxG.sound.music.resume();
 				video.dispose();
 			}
+			#else
+			FlxG.switchState(new MainMenuState());
+			FlxG.sound.music.resume();
+			video.dispose();
+			#end
 		});
 		#else
-		FlxG.openURL("https://youtu.be/UwGiXZOC-SQ");
-		FlxG.switchState(new MainMenuState());
+		if (FlxG.random.bool(20))
+		{
+			FlxG.openURL("https://youtu.be/ChnqPMwQIKc");
+			FlxG.switchState(new MainMenuState());
+		}
+		else
+		{
+			FlxG.openURL("https://youtu.be/UwGiXZOC-SQ");
+			FlxG.switchState(new MainMenuState());
+		}
 		#end
 	}
 

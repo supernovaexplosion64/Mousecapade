@@ -74,7 +74,11 @@ class MainMenuState extends FlxState
         credits.y = FlxG.height - credits.height - 12;
         add(credits);
 
+		#if desktop
 		FlxG.sound.playMusic("assets/music/mainmenu.ogg", 1, true);
+		#else
+		FlxG.sound.playMusic("assets/music/mainmenu.mp3", 1, true);
+		#end
     }
 
     override public function update(elapsed:Float)
