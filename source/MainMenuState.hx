@@ -74,7 +74,7 @@ class MainMenuState extends FlxState
         add(instructText);
 
 		credText = new FlxText();
-		credText.text = 'credions';
+		credText.text = 'Credits';
 		credText.size = 32;
 		credText.font = "Times New Roman";
 		credText.x = credButton.x + (credButton.width / 2) - (credText.width / 2);
@@ -150,5 +150,27 @@ class MainMenuState extends FlxState
                 }
             }
         }
+		if (FlxG.mouse.overlaps(credButton))
+		{
+			for (e in [credButton, credText])
+			{
+				FlxTween.tween(e, {alpha: 0.6}, 0.6);
+			}
+
+			if (FlxG.mouse.justPressed)
+			{
+				FlxG.switchState(new CreditsState());
+			}
+		}
+		else
+		{
+			if (credButton.alpha < 1)
+			{
+				for (e in [credButton, credText])
+				{
+					FlxTween.tween(e, {alpha: 1}, 0.6);
+				}
+			}
+		}
     }
 }
