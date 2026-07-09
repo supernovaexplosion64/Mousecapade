@@ -1,8 +1,6 @@
 package;
 
 import flixel.FlxG;
-import flixel.FlxG;
-import flixel.FlxSprite;
 import flixel.FlxSprite;
 import flixel.FlxState;
 import flixel.sound.FlxSound;
@@ -18,12 +16,20 @@ class PlayState extends FlxState
 
 	public var score:Int = 0;
 	public var scoreMultiplier:Float = 1;
+	public var decreasingMultiplier:Float = 100;
 
 	public var daCheese:String;
 
 	public var scoreText:FlxText;
 	public var randomMovementX:Int = FlxG.random.int(1, 10);
 	public var randomMovementY:Int = FlxG.random.int(1, 12);
+
+	public var time:Float = 115;
+	public var timeText:FlxText;
+
+	public var wega:FlxSprite;
+	public var wegaTimes:Int = 0;
+	public var takeAwayPoints:Bool = false;
 
 	override public function create()
 	{
@@ -49,16 +55,37 @@ class PlayState extends FlxState
 		scoreText.text = "SCORE: " + Std.string(score);
 		add(scoreText);
 
+		timeText = new FlxText();
+		timeText.size = 48;
+		timeText.font = "Times New Roman";
+		timeText.text = "TIME: " + Std.string(time);
+		timeText.y = scoreText.y + timeText.height + 12;
+		add(timeText);
+
+		wega = new FlxSprite();
+		wega.loadGraphic("assets/images/enemies/wega.png");
+
 		spawnCheese();
 	}
 
 	override public function update(elapsed:Float)
 	{
+		time -= 1 * FlxG.elapsed;
+		decreasingMultiplier -= 8 * FlxG.elapsed;
+		timeText.text = "TIME: " + Std.string(Std.int(time));
+		timeText.updateHitbox();
+
+		spawnWega();
 		keepPlayerInBox(player);
 		moveCheese();
 		if (FlxG.pixelPerfectOverlap(player, cheese))
 		{
 			feedMe();
+		}
+
+		if (FlxG.pixelPerfectOverlap(player, wega))
+		{
+			touchWega();
 		}
 
 		if (FlxG.keys.pressed.LEFT)
@@ -91,10 +118,14 @@ class PlayState extends FlxState
 		}
 		return daCheese;
 	}*/
+	public function updateText()
+	{
+		scoreText.text = "SCORE: " + Std.string(score);
+	}
 	public function spawnCheese()
 	{
-		var randomX:Int = FlxG.random.int(0, 1200);
-		var randomY:Int = FlxG.random.int(0, 600);
+		var randomX:Int = FlxG.random.int(0, 1212);
+		var randomY:Int = FlxG.random.int(0, 656);
 		//returnDaCheese();
 		var randomCheeseNum:Int = FlxG.random.int(1, 10);
 		if (randomCheeseNum == 1)
@@ -126,9 +157,32 @@ class PlayState extends FlxState
 		add(cheese);
 	}
 
+	public function spawnWega()
+	{
+		if (FlxG.random.bool(0.5))
+		{
+			var randomX:Int = FlxG.random.int(0, 1212);
+			var randomY:Int = FlxG.random.int(0, 656);
+			wega.x = randomX;
+			wega.y = randomY;
+			add(wega);
+		}
+	}
+
+	public function touchWega()
+	{
+		wega.x = wega.x *= -1;
+		wega.y = wega.y *= -1;
+		takeAwayScore();
+		remove(wega);
+		wegaPopUp();
+		updateText();
+	}
+
 	public function feedMe()
 	{
 		addScore();
+		decreasingMultiplier = 100 - (2 * wegaTimes);
 		remove(cheese);
 		spawnCheese();
 		showPopUp();
@@ -189,13 +243,27 @@ class PlayState extends FlxState
 			default:
 				scoreMultiplier = 1;
 		}
-		score += Std.int(1 * scoreMultiplier);
-		scoreText.text = "SCORE: " + Std.string(score);
+		score += Std.int(1 * scoreMultiplier * decreasingMultiplier);
+		updateText();
+	}
+
+	public function takeAwayScore()
+	{
+		takeAwayPoints = true;
+		if (takeAwayPoints)
+		{
+			takeAwayPoints = false;
+			wegaTimes += 1;
+			if (wegaTimes > 50)
+				wegaTimes = 50;
+			trace(wegaTimes);
+			score -= 15 * wegaTimes;
+		}
 	}
 
 	public function showPopUp()
 	{
-		var randomPopUpNumber:Int = FlxG.random.int(1, 4);
+		var randomPopUpNumber:Int = FlxG.random.int(1, 7);
 		var rPuS:String = '';
 		popUp = new FlxSprite();
 		switch (randomPopUpNumber)
@@ -208,6 +276,12 @@ class PlayState extends FlxState
 				rPuS = 'feedme';
 			case 4:
 				rPuS = 'donald';
+			case 5:
+				rPuS = 'fat';
+			case 6:
+				rPuS = 'omg';
+			case 7:
+				rPuS = 'phone';
 		}
 		popUp.loadGraphic("assets/images/popups/" + rPuS + ".png");
 		popUp.screenCenter();
@@ -215,6 +289,18 @@ class PlayState extends FlxState
 		FlxTween.tween(popUp, {alpha: 0}, 0.6);
 		mickeySound = FlxG.sound.load("assets/sounds/mickey-mouse.ogg");
 		mickeySound.play();
+	}
+
+	public function wegaPopUp()
+	{
+		popUp = new FlxSprite();
+		popUp.loadGraphic("assets/images/popups/scream.png");
+		popUp.screenCenter();
+		add(popUp);
+		FlxTween.tween(popUp, {alpha: 0}, 0.6);
+		mickeySound = FlxG.sound.load("assets/sounds/scream.ogg");
+		mickeySound.play();
+		FlxG.camera.shake();
 	}
 
 	public function keepPlayerInBox(obj:FlxSprite)
