@@ -20,9 +20,19 @@ class MainMenuState extends FlxState
     public var warning:FlxText;
     public var credits:FlxText;
 
+	public var outputSuffix:String;
+	public var credButton:FlxSprite;
+	public var credText:FlxText;
+
     override public function create()
     {
     	super.create();
+
+		#if desktop
+		outputSuffix = '.ogg';
+		#else
+		outputSuffix = '.mp3';
+		#end
 
         bg = new FlxSprite();
 		bg.loadGraphic("assets/images/bg-misery.png");
@@ -41,6 +51,12 @@ class MainMenuState extends FlxState
         instruct.y = button.y + button.height + 12;
         add(instruct);
 
+		credButton = new FlxSprite();
+		credButton.makeGraphic(400, 150, FlxColor.LIME);
+		credButton.screenCenter(X);
+		credButton.y = instruct.y + instruct.height + 12;
+		add(credButton);
+
         buttonText = new FlxText();
         buttonText.text = 'PLAY MY GAME';
         buttonText.size = 32;
@@ -56,6 +72,14 @@ class MainMenuState extends FlxState
         instructText.x = instruct.x + (instruct.width / 2) - (instructText.width / 2);
         instructText.y = instruct.y + (instruct.height / 2) - (instructText.height / 2);
         add(instructText);
+
+		credText = new FlxText();
+		credText.text = 'credions';
+		credText.size = 32;
+		credText.font = "Times New Roman";
+		credText.x = credButton.x + (credButton.width / 2) - (credText.width / 2);
+		credText.y = credButton.y + (credButton.height / 2) - (credText.height / 2);
+		add(credText);
 
         warning = new FlxText();
         warning.text = 'Please DO NOT play this game if you are a person with epilepsy and/or prone to seizures.';
@@ -74,11 +98,7 @@ class MainMenuState extends FlxState
         credits.y = FlxG.height - credits.height - 12;
         add(credits);
 
-		#if desktop
-		FlxG.sound.playMusic("assets/music/mainmenu.ogg", 1, true);
-		#else
-		FlxG.sound.playMusic("assets/music/mainmenu.mp3", 1, true);
-		#end
+		FlxG.sound.playMusic("assets/music/mainmenu" + outputSuffix, 1, true);
     }
 
     override public function update(elapsed:Float)

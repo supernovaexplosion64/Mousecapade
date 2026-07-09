@@ -34,7 +34,7 @@ class PlayState extends FlxState
 	public var randomMovementX:Int = FlxG.random.int(1, 10);
 	public var randomMovementY:Int = FlxG.random.int(1, 12);
 
-	public var time:Float = 115;
+	public var time:Float = 120;
 	public var timeText:FlxText;
 
 	public var wega:FlxSprite;
@@ -44,6 +44,14 @@ class PlayState extends FlxState
 	public var pickUp:FlxSprite;
 	public var videoPlaying = false;
 
+	public static var enemiesCaught:Int = 0;
+	public static var cheesesCaught:Int = 0;
+
+	public var phoneAppear:Bool = false;
+	public var wegaAppear:Bool = false;
+
+	public var outputSuffix:String;
+
 	override public function create()
 	{
 		super.create();
@@ -51,6 +59,8 @@ class PlayState extends FlxState
 		if (gameJustStarted)
 		{
 			score = 0;
+			enemiesCaught = 0;
+			cheesesCaught = 0;
 		}
 		gameJustStarted = false;
 
@@ -67,10 +77,12 @@ class PlayState extends FlxState
 		add(player);
 
 		#if desktop
-		FlxG.sound.playMusic("assets/music/welcome-old.ogg", 1, true);
+		outputSuffix = '.ogg';
 		#else
-		FlxG.sound.playMusic("assets/music/welcome-old.mp3", 1, true);
+		outputSuffix = '.mp3';
 		#end
+
+		FlxG.sound.playMusic("assets/music/welcome-old" + outputSuffix, 1, true);
 
 		cheese = new FlxSprite();
 		cheese.loadGraphic("assets/images/items/cheese.png");
@@ -119,12 +131,12 @@ class PlayState extends FlxState
 			feedMe();
 		}
 
-		if (FlxG.pixelPerfectOverlap(player, wega))
+		if (FlxG.pixelPerfectOverlap(player, wega) && wegaAppear)
 		{
 			touchWega();
 		}
 
-		if (FlxG.pixelPerfectOverlap(player, pickUp))
+		if (FlxG.pixelPerfectOverlap(player, pickUp) && phoneAppear)
 		{
 			loadUpVideo();
 		}
@@ -212,6 +224,10 @@ class PlayState extends FlxState
 	{
 		if (FlxG.random.bool(0.5))
 		{
+			new FlxTimer().start(1, function(tmr:FlxTimer)
+			{
+				wegaAppear = true;
+			});
 			var randomX:Int = FlxG.random.int(0, 1212);
 			var randomY:Int = FlxG.random.int(0, 656);
 			// wega.alpha = 0;
@@ -226,6 +242,7 @@ class PlayState extends FlxState
 				wega.y = wega.y *= -1;
 				remove(wega);
 				wega.updateHitbox();
+				wegaAppear = false;
 			});
 		}
 		wega.updateHitbox();
@@ -237,14 +254,23 @@ class PlayState extends FlxState
 		wega.y = wega.y *= -1;
 		takeAwayScore();
 		remove(wega);
+		wegaAppear = false;
 		wegaPopUp();
 		updateText();
+		enemiesCaught += 1;
+		#if debug
+		trace(enemiesCaught);
+		#end
 	}
 
 	public function spawnPhone()
 	{
 		if (FlxG.random.bool(0.06))
 		{
+			new FlxTimer().start(1.2, function(tmr:FlxTimer)
+			{
+				phoneAppear = true;
+			});
 			var randomX:Int = FlxG.random.int(0, 1212);
 			var randomY:Int = FlxG.random.int(0, 656);
 			// pickUp.alpha = 0;
@@ -255,7 +281,11 @@ class PlayState extends FlxState
 			// FlxTween.tween(pickUp, {alpha: 1}, 0.2);
 			new FlxTimer().start(6, function(tmr:FlxTimer)
 			{
+				pickUp.x = pickUp.x *= -1;
+				pickUp.y = pickUp.y *= -1;
 				remove(pickUp);
+				pickUp.updateHitbox();
+				phoneAppear = false;
 			});
 		}
 		pickUp.updateHitbox();
@@ -268,6 +298,10 @@ class PlayState extends FlxState
 		remove(cheese);
 		spawnCheese();
 		showPopUp();
+		cheesesCaught += 1;
+		#if debug
+		trace(cheesesCaught);
+		#end
 	}
 
 	/*public function randomMovementSucks()
@@ -339,7 +373,7 @@ class PlayState extends FlxState
 			if (wegaTimes > 50)
 				wegaTimes = 50;
 			trace(wegaTimes);
-			score -= 15 * wegaTimes;
+			score -= 50 * wegaTimes;
 		}
 	}
 
@@ -377,11 +411,7 @@ class PlayState extends FlxState
 		popUp.screenCenter();
 		add(popUp);
 		FlxTween.tween(popUp, {alpha: 0}, 0.6);
-		#if desktop
-		mickeySound = FlxG.sound.load("assets/sounds/mickey-mouse.ogg");
-		#else
-		mickeySound = FlxG.sound.load("assets/sounds/mickey-mouse.mp3");
-		#end
+		mickeySound = FlxG.sound.load("assets/sounds/mickey-mouse" + outputSuffix);
 		mickeySound.play();
 		new FlxTimer().start(time, function(tmr:FlxTimer)
 		{
@@ -396,11 +426,7 @@ class PlayState extends FlxState
 		popUp.screenCenter();
 		add(popUp);
 		FlxTween.tween(popUp, {alpha: 0}, 0.6);
-		#if desktop
-		mickeySound = FlxG.sound.load("assets/sounds/scream.ogg");
-		#else
-		mickeySound = FlxG.sound.load("assets/sounds/scream.mp3");
-		#end
+		mickeySound = FlxG.sound.load("assets/sounds/scream" + outputSuffix);
 		mickeySound.play();
 		FlxG.camera.shake();
 		new FlxTimer().start(time, function(tmr:FlxTimer)
@@ -411,6 +437,7 @@ class PlayState extends FlxState
 
 	public function loadUpVideo()
 	{
+		phoneAppear = false;
 		pickUp.x = pickUp.x *= -1;
 		pickUp.y = pickUp.y *= -1;
 		remove(pickUp);

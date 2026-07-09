@@ -19,9 +19,17 @@ class InstructionGuideState extends FlxState
 
     public var bg:FlxSprite;
 
+	public var outputSuffix:String;
+
     override public function create()
     {
     	super.create();
+
+		#if desktop
+		outputSuffix = '.ogg';
+		#else
+		outputSuffix = '.mp3';
+		#end
 
         bg = new FlxSprite();
 		bg.loadGraphic("assets/images/bg.png");
@@ -29,7 +37,7 @@ class InstructionGuideState extends FlxState
 		add(bg);
 
         text = new FlxText();
-        text.text = 'how 2 play\ntuoch da cheses\ndodge the bad guys\nget hgih scroe adn win';
+		text.text = 'how 2 play\ntuoch da cheses\ndogde teh bad gyus\nget hgih scroe adn win';
         text.font = 'Times New Roman';
         text.size = 48;
         text.x = 12;
@@ -63,11 +71,7 @@ class InstructionGuideState extends FlxState
 
         if (FlxG.sound.music == null) // don't restart the music if it's already playing BLUD
 		{
-			#if desktop
-			FlxG.sound.playMusic("assets/music/mainmenu.ogg", 1, true);
-			#else
-			FlxG.sound.playMusic("assets/music/mainmenu.mp3", 1, true);
-			#end
+			FlxG.sound.playMusic("assets/music/mainmenu" + outputSuffix, 1, true);
 		}
     }
 
