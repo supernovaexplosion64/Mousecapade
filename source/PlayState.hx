@@ -1,20 +1,28 @@
 package;
 
+import Sys;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.FlxState;
 import flixel.sound.FlxSound;
 import flixel.text.FlxText;
 import flixel.tweens.FlxTween;
+import flixel.util.FlxTimer;
+#if (desktop || android)
+import hxcodec.flixel.FlxVideo;
+#end
 
 class PlayState extends FlxState
 {
+	public static var gameJustStarted:Bool = false;
 	public var player:FlxSprite;
 	public var cheese:FlxSprite;
 	public var popUp:FlxSprite;
 	public var mickeySound:FlxSound;
 
-	public var score:Int = 0;
+	public var bg:FlxSprite;
+
+	public static var score:Int = 0;
 	public var scoreMultiplier:Float = 1;
 	public var decreasingMultiplier:Float = 100;
 
@@ -31,9 +39,24 @@ class PlayState extends FlxState
 	public var wegaTimes:Int = 0;
 	public var takeAwayPoints:Bool = false;
 
+	public var pickUp:FlxSprite;
+	public var videoPlaying = false;
+
 	override public function create()
 	{
 		super.create();
+		gameJustStarted = true;
+		if (gameJustStarted)
+		{
+			score = 0;
+		}
+		gameJustStarted = false;
+
+		bg = new FlxSprite();
+		bg.loadGraphic("assets/images/bg.png");
+		bg.screenCenter();
+		add(bg);
+
 		player = new FlxSprite();
 		player.loadGraphic("assets/images/player.png");
 		player.setGraphicSize(128, 128);
@@ -41,10 +64,7 @@ class PlayState extends FlxState
 		player.y = FlxG.height - 256;
 		add(player);
 
-		if (FlxG.sound.music == null) // don't restart the music if it's already playing BLUD
-		{
-			FlxG.sound.playMusic("assets/music/welcome-old.ogg", 1, true);
-		}
+		FlxG.sound.playMusic("assets/music/welcome-old.ogg", 1, true);
 
 		cheese = new FlxSprite();
 		cheese.loadGraphic("assets/images/items/cheese.png");
@@ -65,6 +85,9 @@ class PlayState extends FlxState
 		wega = new FlxSprite();
 		wega.loadGraphic("assets/images/enemies/wega.png");
 
+		pickUp = new FlxSprite();
+		pickUp.loadGraphic("assets/images/enemies/fnati.png");
+
 		spawnCheese();
 	}
 
@@ -76,6 +99,7 @@ class PlayState extends FlxState
 		timeText.updateHitbox();
 
 		spawnWega();
+		spawnPhone();
 		keepPlayerInBox(player);
 		moveCheese();
 		if (FlxG.pixelPerfectOverlap(player, cheese))
@@ -86,6 +110,11 @@ class PlayState extends FlxState
 		if (FlxG.pixelPerfectOverlap(player, wega))
 		{
 			touchWega();
+		}
+
+		if (FlxG.pixelPerfectOverlap(player, pickUp))
+		{
+			loadUpVideo();
 		}
 
 		if (FlxG.keys.pressed.LEFT)
@@ -104,6 +133,16 @@ class PlayState extends FlxState
 		{
 			player.y += 640 * elapsed;
 		}
+		if (time <= 0)
+		{
+			FlxG.switchState(new ScoreState());
+		}
+		#if debug
+		if (FlxG.keys.justPressed.Q)
+		{
+			FlxG.switchState(new ScoreState());
+		}
+		#end
 		super.update(elapsed);
 	}
 	/*public function returnDaCheese()
@@ -163,9 +202,15 @@ class PlayState extends FlxState
 		{
 			var randomX:Int = FlxG.random.int(0, 1212);
 			var randomY:Int = FlxG.random.int(0, 656);
+			// wega.alpha = 0;
 			wega.x = randomX;
 			wega.y = randomY;
 			add(wega);
+			// FlxTween.tween(wega, {alpha: 1}, 0.2);
+			new FlxTimer().start(6, function(tmr:FlxTimer)
+			{
+				remove(wega);
+			});
 		}
 	}
 
@@ -177,6 +222,24 @@ class PlayState extends FlxState
 		remove(wega);
 		wegaPopUp();
 		updateText();
+	}
+
+	public function spawnPhone()
+	{
+		if (FlxG.random.bool(0.06))
+		{
+			var randomX:Int = FlxG.random.int(0, 1212);
+			var randomY:Int = FlxG.random.int(0, 656);
+			// pickUp.alpha = 0;
+			pickUp.x = randomX;
+			pickUp.y = randomY;
+			add(pickUp);
+			// FlxTween.tween(pickUp, {alpha: 1}, 0.2);
+			new FlxTimer().start(6, function(tmr:FlxTimer)
+			{
+				remove(pickUp);
+			});
+		}
 	}
 
 	public function feedMe()
@@ -263,7 +326,7 @@ class PlayState extends FlxState
 
 	public function showPopUp()
 	{
-		var randomPopUpNumber:Int = FlxG.random.int(1, 7);
+		var randomPopUpNumber:Int = FlxG.random.int(1, 11);
 		var rPuS:String = '';
 		popUp = new FlxSprite();
 		switch (randomPopUpNumber)
@@ -282,6 +345,14 @@ class PlayState extends FlxState
 				rPuS = 'omg';
 			case 7:
 				rPuS = 'phone';
+			case 8:
+				rPuS = 'billy';
+			case 9:
+				rPuS = 'skinny';
+			case 10:
+				rPuS = 'madness';
+			case 11:
+				rPuS = 'alpha';
 		}
 		popUp.loadGraphic("assets/images/popups/" + rPuS + ".png");
 		popUp.screenCenter();
@@ -289,6 +360,10 @@ class PlayState extends FlxState
 		FlxTween.tween(popUp, {alpha: 0}, 0.6);
 		mickeySound = FlxG.sound.load("assets/sounds/mickey-mouse.ogg");
 		mickeySound.play();
+		new FlxTimer().start(time, function(tmr:FlxTimer)
+		{
+			remove(popUp);
+		});
 	}
 
 	public function wegaPopUp()
@@ -301,6 +376,43 @@ class PlayState extends FlxState
 		mickeySound = FlxG.sound.load("assets/sounds/scream.ogg");
 		mickeySound.play();
 		FlxG.camera.shake();
+		new FlxTimer().start(1, function(tmr:FlxTimer)
+		{
+			remove(popUp);
+		});
+	}
+
+	public function loadUpVideo()
+	{
+		/*pickUp.x *= -1;
+			pickUp.y *= -1;
+			remove(pickUp);
+			score -= 1000; */
+		#if (desktop || android)
+		var video:FlxVideo = new FlxVideo();
+		if (!videoPlaying)
+		{
+			FlxG.sound.music.pause();
+			videoPlaying = true;
+			video.play("assets/videos/pick-up-the-phone.mp4");
+		}
+		new FlxTimer().start(5, function(tmr:FlxTimer)
+		{
+			if (FlxG.random.bool(10))
+			{
+				Sys.exit(0);
+			}
+			else
+			{
+				FlxG.switchState(new MainMenuState());
+				FlxG.sound.music.resume();
+				video.dispose();
+			}
+		});
+		#else
+		FlxG.openURL("https://youtu.be/UwGiXZOC-SQ");
+		FlxG.switchState(new MainMenuState());
+		#end
 	}
 
 	public function keepPlayerInBox(obj:FlxSprite)
