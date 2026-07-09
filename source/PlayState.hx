@@ -376,7 +376,7 @@ class PlayState extends FlxState
 		mickeySound = FlxG.sound.load("assets/sounds/scream.ogg");
 		mickeySound.play();
 		FlxG.camera.shake();
-		new FlxTimer().start(1, function(tmr:FlxTimer)
+		new FlxTimer().start(time, function(tmr:FlxTimer)
 		{
 			remove(popUp);
 		});
