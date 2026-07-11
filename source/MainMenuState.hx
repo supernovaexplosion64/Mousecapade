@@ -172,5 +172,11 @@ class MainMenuState extends FlxState
 				}
 			}
 		}
+		#if debug
+		if (FlxG.keys.justPressed.E)
+		{
+			FlxG.switchState(new ExperimentalPlayState());
+		}
+		#end
     }
 }

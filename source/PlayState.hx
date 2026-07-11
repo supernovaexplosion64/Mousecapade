@@ -51,6 +51,9 @@ class PlayState extends FlxState
 	public var wegaAppear:Bool = false;
 
 	public var outputSuffix:String;
+	public var bonusStreak:Int = 0;
+
+	public var randomObj:Array<FlxSprite>;
 
 	override public function create()
 	{
@@ -61,6 +64,7 @@ class PlayState extends FlxState
 			score = 0;
 			enemiesCaught = 0;
 			cheesesCaught = 0;
+			bonusStreak = 0;
 		}
 		gameJustStarted = false;
 
@@ -109,8 +113,6 @@ class PlayState extends FlxState
 		pickUp.loadGraphic("assets/images/enemies/fnati.png");
 		pickUp.x = pickUp.width * -1;
 		pickUp.y = pickUp.height - 1;
-
-		spawnCheese();
 	}
 
 	override public function update(elapsed:Float)
@@ -119,13 +121,13 @@ class PlayState extends FlxState
 		decreasingMultiplier -= 8 * FlxG.elapsed;
 		if (decreasingMultiplier < 2)
 			decreasingMultiplier = 2;
+		if (bonusStreak > 100)
+			bonusStreak = 100;
 		timeText.text = "TIME: " + Std.string(Std.int(time));
 		timeText.updateHitbox();
-
-		spawnWega();
-		spawnPhone();
+		spawnRandomObj(2);
 		keepPlayerInBox(player);
-		moveCheese();
+		moveCheese(cheese);
 		if (FlxG.pixelPerfectOverlap(player, cheese))
 		{
 			feedMe();
@@ -252,6 +254,7 @@ class PlayState extends FlxState
 	{
 		wega.x = wega.x *= -1;
 		wega.y = wega.y *= -1;
+		bonusStreak = 0;
 		takeAwayScore();
 		remove(wega);
 		wegaAppear = false;
@@ -293,10 +296,14 @@ class PlayState extends FlxState
 
 	public function feedMe()
 	{
+		cheese.x *= -1;
+		cheese.y *= -1;
+		cheese.updateHitbox();
+		bonusStreak += 1;
 		addScore();
 		decreasingMultiplier = 100 - (2 * wegaTimes);
 		remove(cheese);
-		spawnCheese();
+		// spawnCheese();
 		showPopUp();
 		cheesesCaught += 1;
 		#if debug
@@ -316,36 +323,49 @@ class PlayState extends FlxState
 		trace(randomMovement);
 	}*/
 
-	public function moveCheese()
+	public function moveCheese(obj:FlxSprite)
 	{
-		if (daCheese == 'blue')
+		if (obj != cheese)
 		{
-			if (FlxG.random.bool(2))
-			{
-				randomMovementX *= -1;
-			}
 			if (FlxG.random.bool(3))
 			{
-				randomMovementY *= -1;
-			}
-			cheese.x += randomMovementX;
-			cheese.y += randomMovementY;
-		}
-		else if (daCheese == 'red')
-		{
-			if (FlxG.random.bool(4))
-			{
 				randomMovementX *= -1;
-			}
-			if (FlxG.random.bool(5))
-			{
 				randomMovementY *= -1;
 			}
-			cheese.x += randomMovementX * 2;
-			cheese.y += randomMovementY * 2;
+			obj.x += randomMovementX;
+			obj.y += randomMovementY;
 		}
-		cheese.updateHitbox();
-		keepPlayerInBox(cheese);
+		else
+		{
+			if (daCheese == 'blue')
+			{
+				if (FlxG.random.bool(2))
+				{
+					randomMovementX *= -1;
+				}
+				if (FlxG.random.bool(3))
+				{
+					randomMovementY *= -1;
+				}
+				obj.x += randomMovementX;
+				obj.y += randomMovementY;
+			}
+			else if (daCheese == 'red')
+			{
+				if (FlxG.random.bool(4))
+				{
+					randomMovementX *= -1;
+				}
+				if (FlxG.random.bool(5))
+				{
+					randomMovementY *= -1;
+				}
+				obj.x += randomMovementX * 2;
+				obj.y += randomMovementY * 2;
+			}
+		}
+		obj.updateHitbox();
+		keepPlayerInBox(obj);
 	}
 
 	public function addScore()
@@ -359,7 +379,7 @@ class PlayState extends FlxState
 			default:
 				scoreMultiplier = 1;
 		}
-		score += Std.int((100 * scoreMultiplier) + decreasingMultiplier);
+		score += Std.int((100 * scoreMultiplier) + decreasingMultiplier + (bonusStreak * 75));
 		updateText();
 	}
 
@@ -438,6 +458,7 @@ class PlayState extends FlxState
 	public function loadUpVideo()
 	{
 		phoneAppear = false;
+		bonusStreak = 0;
 		pickUp.x = pickUp.x *= -1;
 		pickUp.y = pickUp.y *= -1;
 		remove(pickUp);
@@ -494,5 +515,65 @@ class PlayState extends FlxState
 		if (obj.y > FlxG.height - obj.height)
 			obj.y = FlxG.height - obj.height;
 		obj.updateHitbox();
+	}
+	/*public function spawnRandomObj(obj:FlxSprite, chanceAppear:Float = 0.1)
+		{
+			if (FlxG.random.bool(chanceAppear))
+			{
+				var maxPositionX:Int = Std.int(FlxG.width - obj.width);
+				var maxPositionY:Int = Std.int(FlxG.height - obj.height);
+				var randomX:Int = FlxG.random.int(0, maxPositionX);
+				var randomY:Int = FlxG.random.int(0, maxPositionY);
+				daCheese = returnDaCheese();
+
+				if (obj == cheese)
+				{
+					switch (daCheese)
+					{
+						case 'red':
+							cheese.loadGraphic("assets/images/items/redcheese.png");
+						case 'blue':
+							cheese.loadGraphic("assets/images/items/bluecheese.png");
+						default:
+							cheese.loadGraphic("assets/images/items/cheese.png");
+					}
+				}
+				cheese.x = randomX;
+				cheese.y = randomY;
+				add(cheese);
+			}
+	}*/
+	public function spawnRandomObj(randomAppear:Float = 1)
+	{
+		var pemdas:Int = FlxG.random.int(1, 10);
+		if (FlxG.random.bool(randomAppear))
+		{
+			if (pemdas >= 3)
+				spawnCheese();
+			else if (pemdas == 2)
+				spawnWega();
+			else
+				spawnPhone();
+		}
+	}
+
+	public function returnDaCheese():String
+	{
+		var randomCheese:Int = FlxG.random.int(1, 10);
+		if (randomCheese <= 1)
+			return 'red';
+		if (randomCheese <= 3)
+			return 'blue';
+		return 'cheese';
+	}
+
+	public function pleaseExcuseMyBadCodingSkills():FlxSprite
+	{
+		var randomObjAppear:Int = FlxG.random.int(1, 10);
+		if (randomObjAppear >= 3)
+			return cheese;
+		if (randomObjAppear >= 2)
+			return wega;
+		return pickUp;
 	}
 }

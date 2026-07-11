@@ -35,17 +35,18 @@ class CreditsState extends FlxState
         credText = new FlxText();
         credText.text = 'game by ME (rico)\nmain menu song by ME (rico)\nwelcome old (play theme) by crisnosensexd';
         credText.size = 36;
+		credText.font = "Times New Roman";
         credText.x = 12;
         credText.y = 12;
         add(credText);
         
-        specialText = new FlxText();
-        specialText.alignment = FlxTextAlign.RIGHT;
+		specialText = new FlxText();
         specialText.text = 'special thanks to\nthe ancient mice dev team\nbindu\nand vs mouse: cheesed up';
         specialText.size = 36;
         specialText.font = "Times New Roman";
-        specialText.x = FlxG.width - specialText.width - 12;
-        specialText.y = 12;
+		specialText.x = 12;
+		specialText.y = FlxG.height - specialText.height - 12;
+		add(specialText);
 
         exit = new FlxSprite();
         exit.makeGraphic(72, 72, FlxColor.RED);
